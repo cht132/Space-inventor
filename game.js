@@ -125,8 +125,50 @@ function update() {
   let dy = game.player.targetY - game.player.y;
   game.player.x += dx*0.2;
   game.player.y += dy*0.2;
+
+  // 敵人生成
+  if (Date.now() - game.lastEnemy > game.enemyInterval && game.enemies.length < 20) {
+    let types = ['green','yellow','red','rainbow'];
+    let type = types[Math.min(game.level-1, types.length-1)];
+    let hp = 1 + Math.floor(Math.random()*5) + game.level-1;
+    let speed = 1 + Math.random()*0.5 + (game.level-1)*0.2;
+    if (type==='yellow') {hp+=2; speed+=0.3;}
+    if (type==='red') {hp+=4; speed+=0.6;}
+    if (type==='rainbow') {hp+=8; speed+=1;}
+    let x = 40 + Math.random()*(CANVAS.width-80);
+    game.enemies.push({
+      x, y: -40, size: 32+hp*4, hp, maxHp: hp, type, emoji: EMOJIS[type], speed,
+      fireTimer: 0, fireInterval: 120 + Math.random()*100
+    });
+    game.lastEnemy = Date.now();
+  }
+
+  // 敵人移動與發射子彈
+  for (let e of game.enemies) {
+    e.y += e.speed;
+    // 發射子彈（黃、紅、彩色敵人才會射）
+    if (["yellow","red","rainbow"].includes(e.type)) {
+      e.fireTimer = (e.fireTimer||0) + 1;
+      let fireRate = e.fireInterval - game.level*5;
+      if (e.fireTimer > fireRate) {
+        e.fireTimer = 0;
+        // 子彈向下
+        game.enemyBullets.push({x: e.x, y: e.y+e.size/2, vy: 3+game.level*0.2, size: 12, deadly: false});
+      }
+    }
+  }
+  // 移除超出畫面的敵人
+  game.enemies = game.enemies.filter(e => e.y < CANVAS.height+60 && e.hp > 0);
+
+  // 敵人子彈移動
+  for (let eb of game.enemyBullets) {
+    eb.y += eb.vy;
+  }
+  // 移除超出畫面的敵人子彈
+  game.enemyBullets = game.enemyBullets.filter(eb => eb.y < CANVAS.height+30);
+
   // ...existing code...
-  // TODO: add bullets, enemies, collision, items, etc.
+  // TODO: add bullets, collision, items, etc.
 }
 
 function gameLoop() {
