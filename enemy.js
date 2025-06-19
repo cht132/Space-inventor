@@ -176,3 +176,44 @@ class EnemySpawner {
     game.enemies.push(new Enemy(x, -40, type, game.level));
   }
 }
+
+// Enemy event handling
+class EnemyEventHandler {
+  static setupEventListeners() {
+    // Enemy destroyed event handler
+    gameEvents.on('enemyDestroyed', (data) => {
+      const { enemy } = data;
+      
+      // Bonus score for destroying enemy
+      game.score += Math.floor(enemy.maxHp * 5);
+      
+      // Trigger UI update for score
+      gameEvents.emit('scoreChanged', { score: game.score });
+      
+      // Create destruction effect
+      createExplosionEffect(enemy.x, enemy.y, enemy.type);
+      
+      // Item drop chances (10% base chance)
+      if (Math.random() < 0.1) {
+        let itemType;
+        
+        // Rainbow enemy always drops rainbow ball
+        if (enemy.type === 'rainbow') {
+          itemType = 'rainbowBall';
+        } else {
+          // Random item drop
+          const itemTypes = ['spread', 'laser', 'ice', 'fire', 'bomb', 'missile', 'heart', 'goldHeart'];
+          itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+        }
+        
+        const item = new Item(enemy.x, enemy.y, itemType);
+        game.items.push(item);
+      }
+    });
+  }
+}
+
+// Initialize enemy event handlers when document is ready
+$(document).ready(() => {
+  EnemyEventHandler.setupEventListeners();
+});

@@ -37,12 +37,22 @@ class Bullet {
         ctx.arc(this.x, this.y, 6, 0, 2 * Math.PI);
         ctx.fill();
         ctx.restore();
+      } else if (this.type === 'bomb') {
+        // Draw bomb bullet as orange/red circle
+        ctx.save();
+        ctx.fillStyle = '#ff6600';
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
       } else {
         // Other bullet types use emojis
         const bulletEmojis = {
           ice: '❄️',
           fire: '🔥',
-          bomb: '💣',
           missile: '🚀'
         };
         const emoji = bulletEmojis[this.type] || '🔫';

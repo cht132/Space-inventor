@@ -22,7 +22,7 @@ class Player {
       missile: 0
     };
     this.lastFire = 0;
-    this.fireInterval = 180;
+    this.fireInterval = 300; // 增加發射間隔，從 180 調整到 300，降低發射密度
   }
 
   update() {
@@ -148,3 +148,42 @@ class Player {
     return this.lives <= 0;
   }
 }
+
+// Player event handling
+class PlayerEventHandler {
+  static setupEventListeners() {
+    // Player hit by bullet
+    gameEvents.on('playerHit', (data) => {
+      const { bullet, damage } = data;
+      game.player.takeDamage(damage);
+      
+      // Trigger UI update for lives
+      gameEvents.emit('livesChanged', { lives: game.player.lives });
+      
+      // Create hit effect on player
+      createHitEffect(game.player.x, game.player.y, damage, '#ff4444');
+      
+      // Remove enemy bullet
+      const bulletIndex = game.enemyBullets.indexOf(bullet);
+      if (bulletIndex > -1) {
+        game.enemyBullets.splice(bulletIndex, 1);
+      }
+    });
+
+    // Player destroyed (game over)
+    gameEvents.on('playerDestroyed', () => {
+      game.running = false;
+      createExplosionEffect(game.player.x, game.player.y, 'player');
+      
+      // Show game over UI
+      if (window.uiManager) {
+        window.uiManager.showGameOver(game.score);
+      }
+    });
+  }
+}
+
+// Initialize player event handlers when document is ready
+$(document).ready(() => {
+  PlayerEventHandler.setupEventListeners();
+});
